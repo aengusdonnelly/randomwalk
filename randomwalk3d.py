@@ -28,17 +28,17 @@ class Step():
         return dx, dy, dz
     
     def scatter_steps(N, step_opt=spherical1):
-        
-        for i in range(N):
 
+        points = []
+        for i in range(N):
+            points.append(Step.step_opt())
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.set_xticklabels([])
         ax.set_yticklabels([])
         ax.set_zticklabels([])
-        ax.scatter(self.path[0][0], self.path[0][1], self.path[0][2],
-                   color="red", s=50, label="Starting point")
+        ax.scatter(points, color="red", s=10, label="Starting point")
 
 class RandomWalk3D():
 
@@ -117,18 +117,3 @@ class RandomWalk3D():
         plt.legend()
         plt.title("3D random walk of length "+str(len(self.path)-1))
         plt.show()
-
-def main():
-
-    N = 100
-
-    rw3d1 = RandomWalk3D()
-    rw3d1.generate(N, step_opt=Step.cartesian, crossing=False)
-    rw3d1.plot()
-
-    rw3d2 = RandomWalk3D()
-    rw3d2.generate(N, step_opt=Step.spherical1, crossing=False)
-    rw3d2.plot()
-
-if __name__ == "__main__":
-    main()
