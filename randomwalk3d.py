@@ -26,19 +26,6 @@ class Step():
         dz = np.cos(theta)
 
         return dx, dy, dz
-    
-    def scatter_steps(N, step_opt=spherical1):
-
-        points = []
-        for i in range(N):
-            points.append(Step.step_opt())
-
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_zticklabels([])
-        ax.scatter(points, color="red", s=10, label="Starting point")
 
 class RandomWalk3D():
 
@@ -46,17 +33,17 @@ class RandomWalk3D():
 
         self.path = [(0, 0, 0)]
 
-    def gc(self, N, step_opt=Step.cartesian):
+    def gc(self, N, step=Step.cartesian):
 
         for i in range(N):
-            dx, dy, dz = step_opt()
+            dx, dy, dz = step()
             next = (self.path[-1][0] + dx,
                     self.path[-1][1] + dy,
                     self.path[-1][2] + dz)
             
             self.path.append(next)
 
-    def gnc(self, N, step_opt=Step.cartesian):
+    def gnc(self, N, step=Step.cartesian):
 
         if N == 0:
             return True
@@ -65,7 +52,7 @@ class RandomWalk3D():
 
         while True:
 
-            dx, dy, dz = step_opt()
+            dx, dy, dz = step()
             next = (self.path[-1][0] + dx,
                     self.path[-1][1] + dy,
                     self.path[-1][2] + dz)
@@ -76,7 +63,7 @@ class RandomWalk3D():
             else:
                 self.path.append(next)
 
-                if self.gnc(N-1, step_opt=step_opt):
+                if self.gnc(N-1, step=step):
                     return True
                 else:
                     self.path.pop(-1)
@@ -87,12 +74,12 @@ class RandomWalk3D():
                        (self.path[0][1] - self.path[-1][1]) ** 2 +
                        (self.path[0][2] - self.path[-1][2]) ** 2)
     
-    def generate(self, N, step_opt=Step.cartesian, crossing=True):
+    def generate(self, N, step=Step.cartesian, crossing=True):
 
         if crossing:
-            self.gc(N, step_opt=step_opt)
+            self.gc(N, step=step)
         else:
-            self.gnc(N, step_opt=step_opt)
+            self.gnc(N, step=step)
 
     def plot(self, points=True):
 
@@ -117,3 +104,16 @@ class RandomWalk3D():
         plt.legend()
         plt.title("3D random walk of length "+str(len(self.path)-1))
         plt.show()
+
+    def scatter_steps(N, step=Step.spherical1):
+
+        points = []
+        for i in range(N):
+            points.append(step())
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_zticklabels([])
+        ax.scatter(points, color="red", s=10, label="Starting point")
