@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.stats as scs
+import sys
+
+sys.setrecursionlimit(999999999)
 
 class Step():
 
@@ -61,29 +63,20 @@ class Step():
         ax.set_zlabel("z")
 
         ax.scatter(points[:,0], points[:,1], points[:,2],
-                   color="red", s=1, label="Starting point")
+                   color="red", s=0.2, label="Starting point")
 
         ax.set_box_aspect((1, 1 ,1))
         plt.show()
 
-        span = np.linspace(-1, 1, 500)
-
-        plt.plot(span, scs.gaussian_kde(points[:,0])(span),
-                 color="blue", linewidth=2, label="x values")
-        plt.plot(span, scs.gaussian_kde(points[:,1])(span),
-                 color="red", linewidth=2, label="y values")
-        plt.plot(span, scs.gaussian_kde(points[:,2])(span),
-                 color="black", linewidth=2, label="z values")
-        
-        plt.hist(points[:,0], bins=100, density=True,color="blue", alpha=0.5)
-        plt.hist(points[:,1], bins=100, density=True, color="red", alpha=0.5)
-        plt.hist(points[:,2], bins=100, density=True, color="black", alpha=0.5)
+        plt.hist(points[:,0], bins=100, density=True, color="blue", alpha=0.5, label="x values")
+        plt.hist(points[:,1], bins=100, density=True, color="red", alpha=0.5, label="y values")
+        plt.hist(points[:,2], bins=100, density=True, color="black", alpha=0.5, label="z values")
 
         plt.legend()
         plt.xlabel("Position")
         plt.ylabel("Density")
         plt.show()
-
+        
 class RandomWalk3D():
 
     def __init__(self):
