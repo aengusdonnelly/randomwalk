@@ -68,9 +68,12 @@ class Step():
         ax.set_box_aspect((1, 1 ,1))
         plt.show()
 
-        plt.hist(points[:,0], bins=100, density=True, color="blue", alpha=0.5, label="x values")
-        plt.hist(points[:,1], bins=100, density=True, color="red", alpha=0.5, label="y values")
-        plt.hist(points[:,2], bins=100, density=True, color="black", alpha=0.5, label="z values")
+        plt.hist(points[:,0], bins=100, density=True,
+                 color="blue", alpha=0.5, label="x values")
+        plt.hist(points[:,1], bins=100, density=True,
+                 color="red", alpha=0.5, label="y values")
+        plt.hist(points[:,2], bins=100, density=True,
+                 color="black", alpha=0.5, label="z values")
 
         plt.legend()
         plt.xlabel("Position")
@@ -86,12 +89,42 @@ class RandomWalk3D():
     def gc(self, N, step=Step.cartesian):
 
         for i in range(N):
+
             dx, dy, dz = step()
             next = (self.path[-1][0] + dx,
                     self.path[-1][1] + dy,
                     self.path[-1][2] + dz)
             
             self.path.append(next)
+
+    def gnl(self, N, step=Step.cartesian, min_angle=0):
+        
+        for i in range(N):
+
+            while True:
+
+                dx, dy, dz = step()
+                next = (self.path[-1][0] + dx,
+                        self.path[-1][1] + dy,
+                        self.path[-1][2] + dz)
+                
+                if len(self.path) >= 2:
+
+                    u = np.array(self.path[-1]) - np.array(self.path[-2])
+                    v = np.array(next) - np.array(self.path[-1])
+
+                    angle = np.pi - np.arccos(np.dot(u, v)/ (np.linalg.norm(u) * np.linalg.norm(v)))
+
+                    if angle <= min_angle:
+                        continue
+                    else:
+                        self.path.append(next)
+                        break
+
+                else:
+
+                    self.path.append(next)
+                    break
 
     def gnc(self, N, step=Step.cartesian):
 
@@ -111,6 +144,7 @@ class RandomWalk3D():
                 continue
 
             else:
+
                 self.path.append(next)
 
                 if self.gnc(N-1, step=step):
@@ -124,12 +158,28 @@ class RandomWalk3D():
                        (self.path[0][1] - self.path[-1][1]) ** 2 +
                        (self.path[0][2] - self.path[-1][2]) ** 2)
     
-    def generate(self, N, step=Step.cartesian, crossing=True):
+    def generate(self, N, step=Step.cartesian, crossing=True, last=True, min_angle=0):
 
-        if crossing:
-            self.gc(N, step=step)
-        else:
-            self.gnc(N, step=step)
+        if step == Step.cartesian:
+
+            if crossing:
+
+                if last:
+                    self.gc(N, step=step)
+                else:
+                    self.gnl(N, step=step, min_angle=min_angle)
+
+            else:
+
+                self.gnc(N, step=step)
+
+        if step == Step.spherical1 or step == Step.spherical2:
+
+            if last:
+                self.gc(N, step=step)
+            else:
+                self.gnl(N, step=step, min_angle=min_angle)
+
 
     def plot(self, points=True):
 

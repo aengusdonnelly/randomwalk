@@ -3,30 +3,22 @@ import randomwalk3d as rw
 
 def plot_walks():
 
-    N = 1000
+    N = 3
 
     rw3d1 = rw.RandomWalk3D()
-    rw3d1.generate(N, step=rw.Step.cartesian, crossing=True)
+    rw3d1.generate(N, step=rw.Step.spherical2, last=False, min_angle=(3/4)*np.pi)
     rw3d1.plot()
-
-    rw3d1 = rw.RandomWalk3D()
-    rw3d1.generate(N, step=rw.Step.cartesian, crossing=False)
-    rw3d1.plot()
-
-    rw3d2 = rw.RandomWalk3D()
-    rw3d2.generate(N, step=rw.Step.spherical1, crossing=False)
-    rw3d2.plot()
 
 def bias_study():
 
-    N = 10000
+    N = 100
 
     rw.Step.scatter_steps(N, step=rw.Step.spherical2)
 
 def main():
 
     plot_walks()
-    bias_study()
+    #bias_study()
 
 if __name__ == "__main__":
     main()
