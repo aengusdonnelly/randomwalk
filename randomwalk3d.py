@@ -80,7 +80,7 @@ class Step():
         plt.ylabel("Density")
         plt.show()
         
-class RandomWalk3D():
+class RandomWalk():
 
     def __init__(self):
 
@@ -113,7 +113,7 @@ class RandomWalk3D():
                     u = np.array(self.path[-1]) - np.array(self.path[-2])
                     v = np.array(next) - np.array(self.path[-1])
 
-                    angle = np.pi - np.arccos(np.dot(u, v)/ (np.linalg.norm(u) * np.linalg.norm(v)))
+                    angle = np.pi - np.arccos(np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v)))
 
                     if angle <= min_angle:
                         continue
