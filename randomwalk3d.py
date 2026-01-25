@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import random as r
 
 sys.setrecursionlimit(999999999)
 
@@ -125,39 +126,68 @@ class RandomWalk():
 
                     self.path.append(next)
                     break
+    
+    def gnc(self, N):
 
-    def gnc(self, N, step=Step.cartesian):
+        depth_list = [0]
 
-        if N == 0:
-            return True
-        
-        c = self.path[-1]
+        def recursion(N, depth_list):
 
-        while True:
-
-            dx, dy, dz = step()
-            next = (self.path[-1][0] + dx,
-                    self.path[-1][1] + dy,
-                    self.path[-1][2] + dz)
+            if N == 0:
+                return True
             
-            if next in self.path:
-                continue
+            steps = [(1, 0, 0), (-1, 0, 0),
+                     (0, 1, 0), (0, -1, 0),
+                     (0, 0, 1), (0, 0, -1)]
 
-            else:
+            while True:
 
-                self.path.append(next)
-
-                if self.gnc(N-1, step=step):
-                    return True
-                else:
+                if len(steps) == 0:
                     self.path.pop(-1)
+                    return False
+
+                dx, dy, dz = r.choice(steps)
+                steps.pop(steps.index((dx, dy, dz)))
+                next = (self.path[-1][0] + dx,
+                        self.path[-1][1] + dy,
+                        self.path[-1][2] + dz)
+                
+                depth_list.append(depth_list[-1]+1)
+                
+                if next in self.path:
+                    
+                    depth_list.append(depth_list[-1]-1)
+
+                else:
+
+                    self.path.append(next)
+
+                    if recursion(N-1, depth_list):
+                        return True
+                    
+                    else:
+                        continue
+
+        recursion(N, depth_list)
+
+        return depth_list
         
     def distance(self):
 
         return np.sqrt((self.path[0][0] - self.path[-1][0]) ** 2 +
                        (self.path[0][1] - self.path[-1][1]) ** 2 +
                        (self.path[0][2] - self.path[-1][2]) ** 2)
-    
+
+    def unique_nodes(self):
+
+        for i in range(1, len(self.path)):
+            for j in range(i+1, len(self.path)):
+                if self.path[i] == self.path[j]:
+
+                    return False
+                
+        return True
+
     def generate(self, N, step=Step.cartesian, crossing=True, last=True, min_angle=0):
 
         if step == Step.cartesian:
@@ -171,15 +201,14 @@ class RandomWalk():
 
             else:
 
-                self.gnc(N, step=step)
+                return self.gnc(N)
 
         if step == Step.spherical1 or step == Step.spherical2:
 
             if last:
-                self.gc(N, step=step)
+                self.gc(N)
             else:
                 self.gnl(N, step=step, min_angle=min_angle)
-
 
     def plot(self, points=True):
 
