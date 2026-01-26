@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import randomwalk3d as rw
 import random as r
+from scipy.stats import gaussian_kde
 
 class Data:
     
@@ -53,6 +54,27 @@ class GetResult:
 
         return dists, walk_data, error_data
     
+    def walks_angle(runs=1000, max_dist=50, step=rw.Step.spherical2, crossing=True, last=False):
+
+        angles = [0, np.pi/5, 2*np.pi/5, 3*np.pi/5, 4*np.pi/5]
+        dist_lists = []
+
+        for angle in angles:
+
+            dist_list = []
+
+            for i in range(runs):
+
+                print(angle/np.pi, i)
+
+                walk = rw.RandomWalk()
+                walk.generate(max_dist, step, crossing=crossing, last=last, min_angle=angle)
+                dist_list.append(walk.distance())
+
+            dist_lists.append(dist_list)
+        
+        return dist_lists
+    
     def acceptance_rate(runs=100, max_dist=100, step=rw.Step.cartesian, crossing=True, last=True, min_angle=0):
         
         acceptance_rates = []
@@ -85,7 +107,7 @@ class GetResult:
 
         return itters, depth_data
 
-    def scatter_steps(runs=100, step=rw.Step.cartesian):
+    def scatter_steps(runs=100, step=rw.Step.spherical1):
 
         points = np.array(step())
         for i in range(runs-1):
@@ -136,7 +158,7 @@ class Cartesian():
         plt.ylabel("Acceptance Rate")
         plt.show()
 
-    def depth_gnc():
+    def depth_gnc_example():
 
         itters1, depth_data1 = GetResult.depth_gnc(100)
         itters2, depth_data2 = GetResult.depth_gnc(100)
@@ -151,15 +173,123 @@ class Cartesian():
         plt.plot(itters5, depth_data5, color="gainsboro")
 
         plt.grid()
-        plt.xlabel("Itterations")
+        plt.xlabel("Iterations")
         plt.ylabel("Depth")
         plt.show()
 
-        # Do how many itterations it takes compared to length??
+    def depth_gnc():
+
+        lengths = np.linspace(10, 500, 50)
+        runs = 1000
+
+        itter_means = []
+        itter_errors = []
+        
+        for length in lengths:
+
+            print(int(length))
+            itter_data = Data()
+
+            for i in range(runs):
+                itters, depth_data = GetResult.depth_gnc(int(length))
+                itter_data.add(itters[-1])
+
+            itter_means.append(itter_data.mean())
+            itter_errors.append(itter_data.SE())
+
+        plt.errorbar(lengths, itter_means, itter_errors, color="black", ecolor="red", capsize=2, elinewidth=1)
+        plt.grid()
+        plt.xlabel("Walk Length")
+        plt.ylabel("Iterations")
+        plt.show()
+
+class Spherical():
+
+    def bias():
+
+        points = GetResult.scatter_steps(10000, step=rw.Step.spherical1)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+
+        ax.scatter(points[:,0], points[:,1], points[:,2],
+                   color="red", s=0.2, label="Starting point")
+
+        ax.set_box_aspect((1, 1 ,1))
+        plt.show()
+
+        plt.hist(points[:,0], bins=100, density=True,
+                 color="blue", alpha=0.5, label="x values")
+        plt.hist(points[:,1], bins=100, density=True,
+                 color="red", alpha=0.5, label="y values")
+        plt.hist(points[:,2], bins=100, density=True,
+                 color="black", alpha=0.5, label="z values")
+
+        plt.legend()
+        plt.xlabel("Position")
+        plt.ylabel("Density")
+        plt.show()
+
+    def results_walks():
+
+        dists_0pi, walk_data_0pi, error_data_0pi = GetResult.walks(runs=100, max_dist=100, step=rw.Step.spherical2)
+        dists_033pi, walk_data_033pi, error_data_033pi = GetResult.walks(runs=100, max_dist=100, step=rw.Step.spherical2, last=False, min_angle=np.pi/3)
+        dists_067pi, walk_data_067pi, error_data_067pi = GetResult.walks(runs=100, max_dist=100, step=rw.Step.spherical2, last=False, min_angle=2*np.pi/3)
+
+        plt.errorbar(dists_0pi, walk_data_0pi, error_data_0pi, color="black", ecolor="red", capsize=2, elinewidth=1, label="No step restriction")
+        plt.errorbar(dists_033pi, walk_data_033pi, error_data_033pi, color="grey", ecolor="red", capsize=2, elinewidth=1, label="Minimum angle of π/3")
+        plt.errorbar(dists_067pi, walk_data_067pi, error_data_067pi, color="gainsboro", ecolor="red", capsize=2, elinewidth=1, label="Minimum angle of 2π/3")
+        
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Walk Length")
+        plt.ylabel("Average Distance")
+        plt.show()
+
+    def results_walks_angle():
+
+        dist_lists = GetResult.walks_angle(max_dist=50)
+        angles = ["0", "π/5", "2π/5", "3π/5", "4π/5"]
+        colors = ["black", "dimgrey", "darkgrey", "silver", "gainsboro"]
+        i = 0
+        
+        for dist_list in dist_lists:
+
+            space = np.linspace(min(dist_list), max(dist_list), len(dist_list))
+            kde = gaussian_kde(dist_list)
+            plt.plot(space, kde(space), linewidth=2, color=colors[i], label="Angle: "+angles[i])
+
+            i += 1
+
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Reaching Distance")
+        plt.ylabel("Density")
+        plt.show()
+
+class Comparison():
+
+    def results_walks():
+
+        dists_c, walk_data_c, error_data_c = GetResult.walks(runs=1000, max_dist=100, step=rw.Step.cartesian)
+        dists_s, walk_data_s, error_data_s = GetResult.walks(runs=100, max_dist=100, step=rw.Step.spherical2)
+
+        plt.errorbar(dists_c, walk_data_c, error_data_c, color="black", ecolor="red", capsize=2, elinewidth=1, label="Cartesian Walk")
+        plt.errorbar(dists_s, walk_data_s, error_data_s, color="grey", ecolor="red", capsize=2, elinewidth=1, label="Spherical Walk")
+
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Walk Length")
+        plt.ylabel("Average Distance")
+        plt.show()
 
 def main():
 
-    Cartesian.depth_gnc()
+    Comparison.results_walks()
 
 if __name__ == "__main__":
     main()
